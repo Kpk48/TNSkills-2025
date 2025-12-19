@@ -64,5 +64,8 @@ function setup() {
 setup();
 const populate=`INSERT into Vehicles(VehicleID,RegNo,type,LastServiceDate,CurrentOdometer,LastServiceOdometer)
 values('V1','REG-001','Truck','2025-05-20',20000,10000),('V_001','REG-101','Van','2025-10-01',50400,40400),
-('V_002','REG-102','Car','2025-11-15',12050,10000),('V_003','REG-103','Van','2025-08-20',8200,2000)`;
-client.query(populate);
+('V_002','REG-102','Car','2025-11-15',12050,10000),('V_003','REG-103','Van','2025-08-20',8200,2000);
+INSERT INTO TRIPS(VehicleID,DriverName,StartDate,EndDate,DistanceKm) VALUES ('V1','TestDriver','2025-12-20','2025-12-30',500);
+
+`;
+
