@@ -1,42 +1,64 @@
-const { Pool } = require("pg");
-
-const pool = new Pool({
-    host: "localhost",
-    user: "postgres",
-    password: "Srivari59*",
-    database: "userdb",
-    port: 5432
+const { Client } = require('pg');
+const client = new Client({
+    host: 'localhost',
+    user: 'postgres',
+    port: 5432,
+    password: 'Srivari59*',
+    database: 'Zoho',
 });
-function setSchema() {
-pool.query("create table Vehicles(\n" +
-    "VehicleID varchar primary key,\n" +
-    "RegNO varchar,\n" +
-    "Type varchar,\n" +
-    "LastServiceDate date,\n" +
-    "CurrentOdometer bigint,\n" +
-    "LastServiceOdometer bigint\n" +
-    ");\n" +
-    "\n" +
-    "create table Trips(\n" +
-    "TripID int PRIMARY KEY GENERATED ALWAYS AS IDENTITY,\n" +
-    "VehicleID int foreign key references Maintenance_Alerts(VehicleID),\n" +
-    "DriverName varchar,\n" +
-    "StartDate date,\n" +
-    "EndDate date,\n" +
-    "DistanceKm bigint,\n" +
-    ");\n" +
-    "\n" +
-    "create table Maintenance_Alerts(\n" +
-    "AlertID PRIMARY KEY GENERATED ALWAYS AS IDENTITY,\n" +
-    "VehicleID foreign key references Trips(VehicleID),\n" +
-    "AlertDate date,\n" +
-    "Reason varchar,\n" +
-    ")\n" +
-    "\n" +
-    "create table Service_History(\n" +
-    "ServiceID PRIMARY KEY GENERATED ALWAYS AS IDENTITY,\n" +
-    "VehicleID foreign key references Trips(VehicleID),\n" +
-    "ServiceDate date,\n" +
-    "OdometerReading bigint,\n" +
-    "Notes varchar, \n" +
-    ")", (err, res) => {});}
+client.connect()
+    .then(() => console.log('Connected to the database'))
+    .then(setup)
+    .catch(err => console.error('Connection error', err.stack));
+function setup() {
+    const createVehiclesTable = `
+        CREATE TABLE IF NOT EXISTS Vehicles (
+            VehicleID VARCHAR(50) PRIMARY KEY,
+            RegNO VARCHAR(50),
+            Type VARCHAR(50),
+            LastServiceDate DATE,
+            CurrentOdometer BIGINT,
+            LastServiceOdometer BIGINT
+        );`;
+    const createTripsTable = `
+        CREATE TABLE IF NOT EXISTS Trips (
+            TripID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            VehicleID VARCHAR(50),
+            DriverName VARCHAR(100),
+            StartDate DATE,
+            EndDate DATE,
+            DistanceKm BIGINT,
+            FOREIGN KEY (VehicleID) REFERENCES Vehicles(VehicleID)
+        );`;
+    const createMaintenanceAlertsTable = `
+        CREATE TABLE IF NOT EXISTS Maintenance_Alerts (
+            AlertID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            VehicleID VARCHAR(50),
+            AlertDate DATE,
+            Reason VARCHAR(255),
+            FOREIGN KEY (VehicleID) REFERENCES Vehicles(VehicleID)
+        );`;
+    const createServiceHistoryTable = `
+        CREATE TABLE IF NOT EXISTS Service_History (
+            ServiceID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            VehicleID VARCHAR(50),
+            ServiceDate DATE,
+            OdometerReading BIGINT,
+            Notes VARCHAR(255),
+            FOREIGN KEY (VehicleID) REFERENCES Vehicles(VehicleID)
+        );`;
+    client.query(createVehiclesTable)
+        .then(() => console.log('Vehicles table created or exists'))
+        .then(() => client.query(createTripsTable))
+        .then(() => console.log('Trips table created or exists'))
+        .then(() => client.query(createMaintenanceAlertsTable))
+        .then(() => console.log('Maintenance_Alerts table created or exists'))
+        .then(() => client.query(createServiceHistoryTable))
+        .then(() => console.log('Service_History table created or exists'))
+        .catch(err => console.error('Error executing table creation queries:', err.message))
+        .finally(() => {
+            console.log('Finished setup, ending client connection.');
+            client.end();
+        });
+}
+setup();
